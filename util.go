@@ -35,12 +35,12 @@ func (pe ConfigParseError) Error() string {
 
 // toCaseInsensitiveValue checks if the value is a  map;
 // if so, create a copy and lower-case the keys recursively.
-func toCaseInsensitiveValue(value interface{}) interface{} {
+func toCaseInsensitiveValue(kf keyFilter, value interface{}) interface{} {
 	switch v := value.(type) {
 	case map[interface{}]interface{}:
-		value = copyAndInsensitiviseMap(cast.ToStringMap(v))
+		value = copyAndInsensitiviseMap(kf, cast.ToStringMap(v))
 	case map[string]interface{}:
-		value = copyAndInsensitiviseMap(v)
+		value = copyAndInsensitiviseMap(kf, v)
 	}
 
 	return value
@@ -48,16 +48,16 @@ func toCaseInsensitiveValue(value interface{}) interface{} {
 
 // copyAndInsensitiviseMap behaves like insensitiviseMap, but creates a copy of
 // any map it makes case insensitive.
-func copyAndInsensitiviseMap(m map[string]interface{}) map[string]interface{} {
+func copyAndInsensitiviseMap(kf keyFilter, m map[string]interface{}) map[string]interface{} {
 	nm := make(map[string]interface{})
 
 	for key, val := range m {
-		lkey := strings.ToLower(key)
+		lkey := kf(key)
 		switch v := val.(type) {
 		case map[interface{}]interface{}:
-			nm[lkey] = copyAndInsensitiviseMap(cast.ToStringMap(v))
+			nm[lkey] = copyAndInsensitiviseMap(kf, cast.ToStringMap(v))
 		case map[string]interface{}:
-			nm[lkey] = copyAndInsensitiviseMap(v)
+			nm[lkey] = copyAndInsensitiviseMap(kf, v)
 		default:
 			nm[lkey] = v
 		}
@@ -66,19 +66,19 @@ func copyAndInsensitiviseMap(m map[string]interface{}) map[string]interface{} {
 	return nm
 }
 
-func insensitiviseMap(m map[string]interface{}) {
+func insensitiviseMap(kf keyFilter, m map[string]interface{}) {
 	for key, val := range m {
 		switch val.(type) {
 		case map[interface{}]interface{}:
 			// nested map: cast and recursively insensitivise
 			val = cast.ToStringMap(val)
-			insensitiviseMap(val.(map[string]interface{}))
+			insensitiviseMap(kf, val.(map[string]interface{}))
 		case map[string]interface{}:
 			// nested map: recursively insensitivise
-			insensitiviseMap(val.(map[string]interface{}))
+			insensitiviseMap(kf, val.(map[string]interface{}))
 		}
 
-		lower := strings.ToLower(key)
+		lower := kf(key)
 		if key != lower {
 			// remove old key (not lower-cased)
 			delete(m, key)

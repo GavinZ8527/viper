@@ -39,7 +39,7 @@ func TestCopyAndInsensitiviseMap(t *testing.T) {
 		}
 	)
 
-	got := copyAndInsensitiviseMap(given)
+	got := copyAndInsensitiviseMap(defaultKeyFilter, given)
 
 	if !reflect.DeepEqual(got, expected) {
 		t.Fatalf("Got %q\nexpected\n%q", got, expected)
