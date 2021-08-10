@@ -1,4 +1,4 @@
-module github.com/sysinner/viper
+module github.com/GavinZ8527/viper
 
 go 1.12
 
